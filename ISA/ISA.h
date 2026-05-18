@@ -102,6 +102,7 @@ typedef struct {
   SpecRegs specRegs;
   VectorRegs regs[NUM_REGS];
   uint8_t *framebuffer;
+  float *depthbuffer;
   uint32_t width;
   uint32_t height;
 } VirtualGPU;
