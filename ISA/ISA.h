@@ -1,24 +1,7 @@
 #ifndef GPU_ISA_H
 #define GPU_ISA_H
 
-#define NUM_REGS 16
-
 #include <stdint.h>
-
-typedef union {
-  struct {
-    float x, y, z, w;
-  };
-  struct {
-    float r, g, b, a;
-  };
-  float comp[4];
-} VectorRegs;
-
-typedef struct {
-  uint32_t PC;
-  uint32_t SR;
-} SpecRegs;
 
 typedef enum {
   // memory & control flow (0x00 - 0x0f)
@@ -60,7 +43,6 @@ typedef enum {
   GVG_GETDEPTH = 0x54, // read depth
 } OpCode;
 
-// component rearrangement
 typedef enum {
   BROAD_XYZW = 0x00, // no change
   BROAD_X = 0x01,    // broadcast x
@@ -69,7 +51,6 @@ typedef enum {
   BROAD_W = 0x04,    // broadcast w
 } Broad;
 
-// write masks for components
 #define MASK_X (1 << 0)
 #define MASK_Y (1 << 1)
 #define MASK_Z (1 << 2)
@@ -88,7 +69,6 @@ typedef struct {
   uint32_t padding : 4; // bits 28-31
 } InstrFields;
 
-// extract operands from addr field for regular ops
 #define INSTR_DEST(a) ((a >> 0) & 0xF)
 #define INSTR_SRC1(a) ((a >> 4) & 0xF)
 #define INSTR_SRC2(a) ((a >> 8) & 0xF)
@@ -99,8 +79,6 @@ typedef union {
 } Instruction;
 
 typedef struct {
-  SpecRegs specRegs;
-  VectorRegs regs[NUM_REGS];
   uint8_t *framebuffer;
   float *depthbuffer;
   uint32_t width;

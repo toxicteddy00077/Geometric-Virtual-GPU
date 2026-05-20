@@ -66,6 +66,24 @@ uint8_t parse_opcode_str(const char *str) {
     return GVG_NORM;
   if (strcmp(str, "GVG_ATAN2") == 0)
     return GVG_ATAN2;
+  if (strcmp(str, "GVG_REFL") == 0)
+    return GVG_REFL;
+  if (strcmp(str, "GVG_LERP") == 0)
+    return GVG_LERP;
+  if (strcmp(str, "GVG_INV") == 0)
+    return GVG_INV;
+  if (strcmp(str, "GVG_STEP") == 0)
+    return GVG_STEP;
+  if (strcmp(str, "GVG_CLAMP") == 0)
+    return GVG_CLAMP;
+  if (strcmp(str, "GVG_CMP") == 0)
+    return GVG_CMP;
+  if (strcmp(str, "GVG_CMP_EQ") == 0)
+    return GVG_CMP_EQ;
+  if (strcmp(str, "GVG_SETDEPTH") == 0)
+    return GVG_SETDEPTH;
+  if (strcmp(str, "GVG_GETDEPTH") == 0)
+    return GVG_GETDEPTH;
 
   return 0xFF;
 }
@@ -109,9 +127,8 @@ int assmbler(const char *filename, uint32_t *binary, int max_instr) {
 
     char op_str[32];
     unsigned int dest = 0, src1 = 0, src2 = 0, mask = 15;
-    char target[64] = {0};
 
-    int tokens = sscanf(line, "%s %u %u %u %u", op_str, &dest, &src1, &src2, &mask);
+    int tokens = sscanf(line, "%31s", op_str);
     if (tokens < 1) continue;
 
     uint8_t opcode = parse_opcode_str(op_str);
@@ -124,20 +141,17 @@ int assmbler(const char *filename, uint32_t *binary, int max_instr) {
     Instruction instr;
     instr.raw = 0;
     instr.fields.opcode = opcode;
-    instr.fields.w_mask = mask;
 
-    // check if this is JUMP or JZ
+    // check if this is JUMP or JZ — label arg is a string, not uint
     if (opcode == GVG_JUMP || opcode == GVG_JZ) {
-      if (tokens < 2) {
+      char target_str[64] = {0};
+      int n = sscanf(line, "%31s %63s", op_str, target_str);
+      if (n < 2 || target_str[0] == '\0') {
         printf("error: %s requires target\n", op_str);
         fclose(file);
         return -1;
       }
-      
-      // second argument is label or address
-      char target_str[64];
-      sscanf(line, "%s %s", op_str, target_str);
-      
+
       int target_addr = RSOLV_LABL(target_str);
       if (target_addr == -1) {
         target_addr = atoi(target_str);
@@ -147,9 +161,11 @@ int assmbler(const char *filename, uint32_t *binary, int max_instr) {
           return -1;
         }
       }
-      
+
       instr.fields.addr = target_addr & 0xFFF;
     } else {
+      sscanf(line, "%31s %u %u %u %u", op_str, &dest, &src1, &src2, &mask);
+      instr.fields.w_mask = mask;
       instr.fields.addr = (dest & 0xF) | ((src1 & 0xF) << 4) | ((src2 & 0xF) << 8);
     }
 
