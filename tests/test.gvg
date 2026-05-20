@@ -1,0 +1,19 @@
+# rotating circle
+# V0: angle iterator   V2: radius      V4: white
+# V5: dt               V6: end (2pi)   V9: orbit angle
+# V10: orbit radius    V11: screen center
+
+GVG_CLEAR 0 0 0
+
+GVG_SINCOS 7 9 0
+GVG_SCALE 7 7 10
+GVG_SHIFT 1 11 7
+
+loop:
+GVG_SINCOS 7 0 0
+GVG_SCALE 8 7 2
+GVG_SHIFT 8 8 1
+GVG_SETPIXEL 8 4
+GVG_SHIFT 0 0 5
+GVG_CMP 0 0 6
+GVG_JZ loop
