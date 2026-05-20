@@ -5,7 +5,6 @@
 #include <stdio.h>
 #include <string.h>
 
-// memory & control flow
 static inline uint8_t gvg_nop(EU_State *restrict eu, Instruction instr) {
   return 0;
 }
@@ -30,7 +29,6 @@ static inline uint8_t gvg_jz(EU_State *restrict eu, Instruction instr) {
   return 0;
 }
 
-// trigonometric
 static inline uint8_t gvg_sin(EU_State *restrict eu, Instruction instr) {
   int dest = INSTR_DEST(instr.fields.addr);
   int src = INSTR_SRC1(instr.fields.addr);
@@ -80,7 +78,6 @@ static inline uint8_t gvg_sincos(EU_State *restrict eu, Instruction instr) {
   return 0;
 }
 
-// spatial & geometric
 static inline uint8_t gvg_dot(EU_State *restrict eu, Instruction instr) {
   int dest = INSTR_DEST(instr.fields.addr);
   int src1 = INSTR_SRC1(instr.fields.addr);
@@ -186,7 +183,6 @@ static inline uint8_t gvg_lerp(EU_State *restrict eu, Instruction instr) {
   return 0;
 }
 
-// math
 static inline uint8_t gvg_scale(EU_State *restrict eu, Instruction instr) {
   int dest = INSTR_DEST(instr.fields.addr);
   int src1 = INSTR_SRC1(instr.fields.addr);
@@ -229,7 +225,6 @@ static inline uint8_t gvg_inv(EU_State *restrict eu, Instruction instr) {
   return 0;
 }
 
-// predication
 static inline uint8_t gvg_step(EU_State *restrict eu, Instruction instr) {
   int dest = INSTR_DEST(instr.fields.addr);
   int edge = INSTR_SRC1(instr.fields.addr);
@@ -299,7 +294,6 @@ static inline uint8_t gvg_cmp_eq(EU_State *restrict eu, Instruction instr) {
   return 0;
 }
 
-// framebuffer & rendering
 static inline uint8_t gvg_clear(EU_State *restrict eu, Instruction instr) {
   if (!eu->gpu->framebuffer || eu->gpu->width == 0 || eu->gpu->height == 0)
     return 1;
@@ -321,7 +315,7 @@ static inline uint8_t gvg_setpixel(EU_State *restrict eu,
   uint_fast32_t y = (uint_fast32_t)eu->regs[dest].y;
 
   if (x >= eu->gpu->width || y >= eu->gpu->height)
-    return 0; // clip silently
+    return 0;
 
   uint_fast32_t offset = (y * eu->gpu->width + x) * 4;
   eu->gpu->framebuffer[offset + 0] = (uint_fast8_t)(eu->regs[src].r * 255.0f);
@@ -370,7 +364,7 @@ static inline uint8_t gvg_setdepth(EU_State *restrict eu,
   uint_fast32_t y = (uint_fast32_t)eu->regs[dest].y;
 
   if (x >= eu->gpu->width || y >= eu->gpu->height)
-    return 0; // clip silently
+    return 0;
 
   uint_fast32_t offset = y * eu->gpu->width + x;
   eu->gpu->depthbuffer[offset] = eu->regs[src].x;
@@ -400,6 +394,20 @@ static inline uint8_t gvg_getdepth(EU_State *restrict eu,
   eu->regs[dest].z = 0.0f;
   eu->regs[dest].w = 0.0f;
 
+  return 0;
+}
+
+static inline uint8_t gvg_eu_tstart(EU_State *restrict eu, Instruction instr) {
+  int dest = INSTR_DEST(instr.fields.addr);
+  float t = (float)eu->eu_id / (float)eu->total_eus;
+  eu->regs[dest].x = eu->regs[dest].y = eu->regs[dest].z = eu->regs[dest].w = t;
+  return 0;
+}
+
+static inline uint8_t gvg_eu_tend(EU_State *restrict eu, Instruction instr) {
+  int dest = INSTR_DEST(instr.fields.addr);
+  float t = (float)(eu->eu_id + 1) / (float)eu->total_eus;
+  eu->regs[dest].x = eu->regs[dest].y = eu->regs[dest].z = eu->regs[dest].w = t;
   return 0;
 }
 
@@ -485,6 +493,12 @@ uint8_t operation_map(EU_State *restrict eu, Instruction instr) {
     break;
   case GVG_GETDEPTH:
     status = gvg_getdepth(eu, instr);
+    break;
+  case GVG_EU_TSTART:
+    status = gvg_eu_tstart(eu, instr);
+    break;
+  case GVG_EU_TEND:
+    status = gvg_eu_tend(eu, instr);
     break;
   default:
     printf("runtime error: unknown opcode\n");

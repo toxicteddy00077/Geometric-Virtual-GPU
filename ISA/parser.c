@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include "common.h"
 
 #define MAX_LABELS 256
 
@@ -85,15 +84,19 @@ uint8_t parse_opcode_str(const char *str) {
   if (strcmp(str, "GVG_GETDEPTH") == 0)
     return GVG_GETDEPTH;
 
+  if (strcmp(str, "GVG_EU_TSTART") == 0)
+    return GVG_EU_TSTART;
+  if (strcmp(str, "GVG_EU_TEND") == 0)
+    return GVG_EU_TEND;
+
   return 0xFF;
 }
 
 int assmbler(const char *filename, uint32_t *binary, int max_instr) {
-  FILE *file = FILE_CHECK(filename,"r");
-  if(!file) return -1;
+  FILE *file = fopen(filename, "r");
+  if (!file) { fprintf(stderr, "error: could not open '%s'\n", filename); return -1; }
   label_count = 0;
-  
-  // collect labels
+
   char line[256];
   int instr_count = 0;
   while (fgets(line, sizeof(line), file)) {
@@ -116,12 +119,10 @@ int assmbler(const char *filename, uint32_t *binary, int max_instr) {
   rewind(file);
   instr_count = 0;
 
-  // parse instructions and resolve jumps
   while (fgets(line, sizeof(line), file) && instr_count < max_instr) {
     if (line[0] == '\n' || line[0] == '\r' || line[0] == '#')
       continue;
 
-    // skip labels
     if (strchr(line, ':'))
       continue;
 
@@ -142,7 +143,6 @@ int assmbler(const char *filename, uint32_t *binary, int max_instr) {
     instr.raw = 0;
     instr.fields.opcode = opcode;
 
-    // check if this is JUMP or JZ — label arg is a string, not uint
     if (opcode == GVG_JUMP || opcode == GVG_JZ) {
       char target_str[64] = {0};
       int n = sscanf(line, "%31s %63s", op_str, target_str);

@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-VirtualGPU *gvg_alloc_gpu(uint32_t wid, uint32_t bred);
+VirtualGPU *gvg_alloc_gpu(uint32_t width, uint32_t height);
 
 void gvg_free_gpu(VirtualGPU *gpu);
 

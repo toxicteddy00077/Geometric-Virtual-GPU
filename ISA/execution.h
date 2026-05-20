@@ -8,9 +8,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define M_PI_6 M_PI / 6
-#define M_PI_3 M_PI / 3
-
 uint8_t operation_map(EU_State *restrict eu, Instruction instr);
 
 #endif // !EXEC_H
