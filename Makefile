@@ -2,7 +2,7 @@ CC     = gcc
 CFLAGS = -O3 -march=native -flto -ffast-math -Wall -Wextra -I.
 LIBS   = -lm -lpthread -lSDL3
 
-SRCS = main.c \
+SRCS = cube_main.c \
        ISA/memory.c \
        ISA/parser.c \
        ISA/execution.c \
