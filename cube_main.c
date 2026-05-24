@@ -16,8 +16,8 @@ int main(void) {
   if (!gpu) { fprintf(stderr, "failed to alloc gpu\n"); return 1; }
 
   uint32_t binary[MAX_INSTRUCTIONS];
-  int instr_count = assmbler("cube.gvg", binary, MAX_INSTRUCTIONS);
-  if (instr_count < 0) { fprintf(stderr, "failed to parse cube.gvg\n"); return 1; }
+  int instr_count = assmbler("tests/cube.gvg", binary, MAX_INSTRUCTIONS);
+  if (instr_count < 0) { fprintf(stderr, "failed to parse tests/cube.gvg\n"); return 1; }
   Instruction *program = (Instruction *)binary;
 
   Thread_Pool *pool = cpu_map_init(gpu);
